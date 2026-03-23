@@ -15,6 +15,7 @@
 - Dev Assistant app built
 - **Operational Memory System v2 completed and initialized**
 - **Memory System v3 planning requested**
+- GitHub repo uploaded and README refreshed for visitors
 
 ### Active Projects
 | Project | Status | Last Updated | Next Action |
@@ -23,6 +24,7 @@
 | Memory System v3 | Planning | 2026-03-23 | Draft implementation plan and improvements |
 | OpenCode Setup | In Progress | 2026-03-23 | Validate config with Go API and environment constraints |
 | OpenCode Go | Active | 2026-03-23 | Use Go models for coding tasks |
+| GitHub Repo | Complete | 2026-03-23 | Maintain repo and improve documentation |
 
 ### Pending Tasks
 - [ ] Finalize v3 implementation plan
@@ -81,6 +83,21 @@
 - **References:**
   - Docs: https://opencode.ai/docs/go
   - Endpoint: `https://opencode.ai/zen/go/v1`
+
+### GitHub Repo
+- **Objective:** Publish the curated OpenClaw workspace to GitHub
+- **Current Status:** Complete
+- **Key Decisions:**
+  - Use a curated README for visitor onboarding
+  - Exclude secrets, caches, and generated binaries
+  - Keep the repo focused on tools, memory, and workflow docs
+- **Open Tasks:**
+  - [ ] Optional: add a docs index if repo grows further
+- **Blockers:** None
+- **Next Milestone:** Keep README and structure easy to navigate
+- **References:**
+  - Repo: `git@github.com:coolman1984/Openclaw.git`
+  - README: `README.md`
 
 ### Memory System v2
 - **Objective:** Production-ready operational memory system
