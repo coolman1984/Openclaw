@@ -97,8 +97,9 @@ class Config:
             return self._merge(DEFAULT_CONFIG, user_config)
         
         # Create default config
+        import copy
         self.save(DEFAULT_CONFIG)
-        return DEFAULT_CONFIG.copy()
+        return copy.deepcopy(DEFAULT_CONFIG)
     
     def _merge(self, default: Dict, user: Dict) -> Dict:
         """Recursively merge user config with defaults."""

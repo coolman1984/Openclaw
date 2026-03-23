@@ -188,14 +188,29 @@ class SyncManager:
     
     def fix_issues(self, issues: List[str]) -> None:
         """Auto-fix integrity issues."""
+        import re
         for issue in issues:
             if "Orphaned task" in issue:
-                # Extract task ID
-                import re
                 match = re.search(r'task_\w+', issue)
                 if match:
                     self.db.delete_task(match.group())
-            
+
+            elif "Orphaned decision" in issue:
+                match = re.search(r'dec_\w+', issue)
+                if match:
+                    decision = self.db.get_decision(match.group())
+                    if decision:
+                        decision.project_id = None
+                        self.db.save_decision(decision)
+
+            elif "Orphaned blocker" in issue:
+                match = re.search(r'blk_\w+', issue)
+                if match:
+                    blocker = self.db.get_blocker(match.group())
+                    if blocker:
+                        blocker.project_id = None
+                        self.db.save_blocker(blocker)
+
             elif "Missing JSON file" in issue:
                 # Re-export entry
                 match = re.search(r'entry (\d{4}-\d{2}-\d{2})', issue)

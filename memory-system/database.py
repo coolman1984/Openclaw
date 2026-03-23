@@ -47,13 +47,13 @@ class Database:
     END;
 
     CREATE TRIGGER IF NOT EXISTS entries_ad AFTER DELETE ON entries BEGIN
-        INSERT INTO entries_fts(entries_fts, rowid, summary_title, summary_description)
-        VALUES ('delete', old.rowid, old.summary_title, old.summary_description);
+        INSERT INTO entries_fts(entries_fts, rowid, id, summary_title, summary_description)
+        VALUES ('delete', old.rowid, old.id, old.summary_title, old.summary_description);
     END;
 
     CREATE TRIGGER IF NOT EXISTS entries_au AFTER UPDATE ON entries BEGIN
-        INSERT INTO entries_fts(entries_fts, rowid, summary_title, summary_description)
-        VALUES ('delete', old.rowid, old.summary_title, old.summary_description);
+        INSERT INTO entries_fts(entries_fts, rowid, id, summary_title, summary_description)
+        VALUES ('delete', old.rowid, old.id, old.summary_title, old.summary_description);
         INSERT INTO entries_fts(id, summary_title, summary_description)
         VALUES (new.id, new.summary_title, new.summary_description);
     END;
@@ -182,6 +182,8 @@ class Database:
         self._ensure_directory()
         self.conn = sqlite3.connect(db_path)
         self.conn.row_factory = sqlite3.Row
+        self.conn.execute("PRAGMA foreign_keys = ON")
+        self.conn.execute("PRAGMA journal_mode = WAL")
         self._init_schema()
     
     def _ensure_directory(self):
@@ -295,11 +297,18 @@ class Database:
         return entries
     
     def delete_entry(self, date: str) -> None:
-        """Delete entry and related data."""
+        """Delete entry and all related data."""
         cursor = self.conn.cursor()
-        cursor.execute("DELETE FROM entries WHERE id = ?", (date,))
-        cursor.execute("DELETE FROM entry_tags WHERE entry_id = ?", (date,))
+        # Collect IDs of related items before deleting the entry
+        entry = self.get_entry(date)
+        if entry:
+            for decision in entry.decisions:
+                cursor.execute("DELETE FROM decisions WHERE id = ?", (decision.id,))
+            for blocker in entry.blockers:
+                cursor.execute("DELETE FROM blockers WHERE id = ?", (blocker.id,))
         cursor.execute("DELETE FROM tasks WHERE entry_date = ?", (date,))
+        cursor.execute("DELETE FROM entry_tags WHERE entry_id = ?", (date,))
+        cursor.execute("DELETE FROM entries WHERE id = ?", (date,))
         self.conn.commit()
     
     def link_entries(self, date1: str, date2: str) -> None:

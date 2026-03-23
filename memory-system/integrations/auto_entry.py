@@ -86,11 +86,18 @@ class AutoEntryGenerator:
                       decisions: List[Dict],
                       blockers: List[Dict],
                       conversation: Dict) -> Entry:
-        """Create entry from parsed data."""
-        
+        """Create entry from parsed data.
+
+        If an entry already exists for today, merge the new data into it
+        instead of silently overwriting it.
+        """
+
         now = datetime.now().isoformat()
         date = datetime.now().strftime('%Y-%m-%d')
-        
+
+        # Check for existing entry to avoid overwriting
+        existing = self.db.get_entry(date)
+
         # Create task objects
         task_objects = []
         task_ids = []
@@ -98,6 +105,7 @@ class AutoEntryGenerator:
             task = Task.create(
                 title=task_data['title'],
                 priority=task_data.get('priority', 'medium'),
+                entry_date=date,
                 tags=['auto-extracted']
             )
             task_objects.append(task)
@@ -147,31 +155,42 @@ class AutoEntryGenerator:
             extracted_blockers=blocker_ids
         )
         
-        # Create the entry
-        entry = Entry(
-            id=date,
-            date=date,
-            timestamp_created=now,
-            timestamp_updated=now,
-            version='1.0',
-            summary=Summary(
-                title=summary[:100],
-                description=summary,
-                mood='',
-                energy_level=5
-            ),
-            tasks=task_objects,
-            decisions=decision_objects,
-            blockers=blocker_objects,
-            conversations=[conversation_obj],
-            tags=['auto-generated']
-        )
-        
-        # Update metrics
-        entry.metrics.tasks_created = len(task_objects)
-        entry.metrics.decisions_made = len(decision_objects)
-        entry.metrics.blockers_identified = len(blocker_objects)
-        
+        # Merge into existing entry for today, or create a new one
+        if existing:
+            entry = existing
+            entry.timestamp_updated = now
+            entry.tasks.extend(task_objects)
+            entry.decisions.extend(decision_objects)
+            entry.blockers.extend(blocker_objects)
+            entry.conversations.append(conversation_obj)
+            if 'auto-generated' not in entry.tags:
+                entry.tags.append('auto-generated')
+            entry.metrics.tasks_created += len(task_objects)
+            entry.metrics.decisions_made += len(decision_objects)
+            entry.metrics.blockers_identified += len(blocker_objects)
+        else:
+            entry = Entry(
+                id=date,
+                date=date,
+                timestamp_created=now,
+                timestamp_updated=now,
+                version='1.0',
+                summary=Summary(
+                    title=summary[:100],
+                    description=summary,
+                    mood='',
+                    energy_level=5
+                ),
+                tasks=task_objects,
+                decisions=decision_objects,
+                blockers=blocker_objects,
+                conversations=[conversation_obj],
+                tags=['auto-generated']
+            )
+            entry.metrics.tasks_created = len(task_objects)
+            entry.metrics.decisions_made = len(decision_objects)
+            entry.metrics.blockers_identified = len(blocker_objects)
+
         return entry
     
     def approve_pending_parse(self, parse_id: str) -> bool:

@@ -319,6 +319,20 @@ def cmd_backup(args):
         db.close()
 
 
+def _safe_tar_extractall(archive: tarfile.TarFile, dest: Path) -> None:
+    """Extract tar archive safely, rejecting path traversal attempts."""
+    dest = dest.resolve()
+    for member in archive.getmembers():
+        member_path = (dest / member.name).resolve()
+        if not str(member_path).startswith(str(dest) + os.sep) and member_path != dest:
+            raise SystemExit(f"Refusing to extract {member.name}: path traversal detected")
+        if member.issym() or member.islnk():
+            link_target = (dest / member.linkname).resolve()
+            if not str(link_target).startswith(str(dest) + os.sep):
+                raise SystemExit(f"Refusing to extract symlink {member.name}: target outside dest")
+    archive.extractall(dest, filter="data" if hasattr(tarfile, "data_filter") else None)
+
+
 def cmd_restore(args):
     config, db = runtime()
     try:
@@ -330,7 +344,7 @@ def cmd_restore(args):
         if not args.yes and not confirm(f"Restore from {archive.name}? This will overwrite files."):
             return
         with tarfile.open(archive, "r:gz") as tar:
-            tar.extractall(ROOT)
+            _safe_tar_extractall(tar, ROOT)
         print_success(f"Restored snapshot from {archive}")
     finally:
         db.close()

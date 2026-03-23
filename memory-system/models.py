@@ -98,11 +98,12 @@ class Task:
         if hours:
             self.actual_hours = hours
     
-    def block(self, reason: str):
-        """Block task with reason."""
+    def block(self, reason: str) -> 'Blocker':
+        """Block task with reason. Returns the created Blocker so it can be saved."""
         self.status = "blocked"
         blocker = Blocker.create(title=reason, related_task=self.id)
         self.blockers.append(blocker.id)
+        return blocker
     
     def start(self):
         """Start task."""
@@ -351,12 +352,13 @@ class Conversation:
     @classmethod
     def create(cls, source: str, summary: str, raw_text: str, **kwargs) -> 'Conversation':
         """Create a new conversation record."""
+        if 'context_hash' not in kwargs:
+            kwargs['context_hash'] = compute_hash(raw_text)
         return cls(
             id=generate_id("conv"),
             source=source,
             summary=summary,
             raw_text=raw_text,
-            context_hash=compute_hash(raw_text),
             **kwargs
         )
     
@@ -376,15 +378,20 @@ class Note:
     category: str = "general"
     tags: List[str] = field(default_factory=list)
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
-    
+
     @classmethod
     def create(cls, content: str, **kwargs) -> 'Note':
+        kwargs.pop('id', None)
         return cls(
             id=generate_id("note"),
             content=content,
             **kwargs
         )
-    
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> 'Note':
+        return cls(**data)
+
     def to_dict(self) -> Dict:
         return asdict(self)
 
@@ -547,7 +554,7 @@ class Entry:
             tasks=[Task.from_dict(t) for t in data.get('tasks', [])],
             decisions=[Decision.from_dict(d) for d in data.get('decisions', [])],
             blockers=[Blocker.from_dict(b) for b in data.get('blockers', [])],
-            notes=[Note.create(**n) if isinstance(n, dict) else n for n in data.get('notes', [])],
+            notes=[Note.from_dict(n) if isinstance(n, dict) else n for n in data.get('notes', [])],
             conversations=[Conversation.from_dict(c) for c in data.get('conversations', [])],
             metrics=Metrics.from_dict(data.get('metrics', {})),
             tags=data.get('tags', []),
