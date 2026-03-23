@@ -1,0 +1,41 @@
+# Secrets / local auth
+.opencode/
+*.env
+*.key
+*.secret
+*.token
+*.pem
+*.json.local
+
+# Runtime databases and caches
+*.db
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.wal
+*.shm
+__pycache__/
+*.pyc
+
+# Generated / downloaded artifacts
+node_modules/
+*.tar.gz
+*.deb
+ripgrep-*/
+rust-*/
+
+# Backup archives
+memory-backups/
+backup/
+backups/
+
+# Sensitive local state
+.openclaw/workspace-state.json
+
+# Keep the human-readable memory docs, but not raw DB files
+!memory/*.md
+!memory-system/**/*.md
+!memory-system/**/*.py
+!memory-system/**/*.sh
+!memory-system/**/*.txt
