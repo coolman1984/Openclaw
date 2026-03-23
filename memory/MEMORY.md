@@ -32,8 +32,8 @@
 - [ ] Reduce stale/duplicate entries in legacy logs
 
 ### Current Blockers
-1. **GitHub HTTPS authentication** — repository remote now uses HTTPS, but a GitHub PAT or logged-in GitHub CLI session is still required to push
-   - Workaround: Provide a PAT or authenticate via `gh auth login`
+1. **GitHub sync** — repository has been successfully pushed to GitHub via SSH
+   - Status: Complete
 2. **Termux/OpenCode binary compatibility** — newest OpenCode binary requires libc unavailable in this environment
    - Workaround: Use the Go API directly or run OpenCode in a glibc Linux environment
 3. **Legacy dashboard drift** — older summary still reflects pre-v2 state
