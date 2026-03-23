@@ -14,23 +14,23 @@
 - Multi-agent coding system created
 - Dev Assistant app built
 - **Operational Memory System v2 completed and initialized**
-- **Memory System v3 planning requested**
+- **Memory System v3 planning requested and wrapper created**
 - GitHub repo uploaded and README refreshed for visitors
 
 ### Active Projects
 | Project | Status | Last Updated | Next Action |
 |---------|--------|--------------|-------------|
 | Memory System v2 | Complete | 2026-03-23 | Keep using it; stabilize and monitor |
-| Memory System v3 | Planning | 2026-03-23 | Draft implementation plan and improvements |
+| Memory System v3 | In Progress | 2026-03-23 | Review wrapper and finalize migration/adoption |
 | OpenCode Setup | In Progress | 2026-03-23 | Validate config with Go API and environment constraints |
 | OpenCode Go | Active | 2026-03-23 | Use Go models for coding tasks |
 | GitHub Repo | Complete | 2026-03-23 | Maintain repo and improve documentation |
 
 ### Pending Tasks
-- [ ] Finalize v3 implementation plan
+- [ ] Finalize v3 migration/adoption steps
 - [ ] Add git remote backup for memory system
 - [ ] Set up automated cron backups
-- [ ] Migrate dashboard and indexes to v2 outputs
+- [ ] Decide whether to retire the monolith or keep it as fallback
 - [ ] Reduce stale/duplicate entries in legacy logs
 
 ### Current Blockers
@@ -120,19 +120,21 @@
 
 ### Memory System v3
 - **Objective:** Improve memory reliability, retrieval quality, and automation
-- **Current Status:** Planning
+- **Current Status:** In Progress
 - **Key Decisions:**
-  - v3 will add stronger schema validation and workflow enforcement
+  - v3 will keep Markdown + SQLite but add a modular wrapper and cleaner workflows
   - v3 will improve dashboard freshness and indexing
   - v3 will add backup/versioning/restore discipline as first-class features
+  - v3 will be the preferred entry point; the monolith remains as fallback
 - **Open Tasks:**
-  - [ ] Write v3 implementation plan
-  - [ ] Define migration path from v2 to v3
-  - [ ] Decide automation triggers and review cycle
+  - [ ] Finalize migration/adoption steps
+  - [ ] Decide whether to retire the monolith or keep it as fallback
+  - [ ] Add stronger schema validation and workflow enforcement if needed
 - **Blockers:** None
-- **Next Milestone:** Approved v3 plan
+- **Next Milestone:** Approve adoption of `memory-v3.py` as the default CLI
 - **References:**
   - Proposed plan file: `memory-system/IMPLEMENTATION_PLAN_V3.md`
+  - New CLI: `memory-system/memory-v3.py`
 
 ---
 

@@ -7,6 +7,12 @@ Build a more reliable, more automated, and more searchable memory system than v2
 - Strong project continuity
 - Low-friction updates
 
+## Current Status
+- The modular v3 wrapper (`memory-v3.py`) has been created
+- Dashboard generation is working from the modular stack
+- Validation, backup, parse/approve, and sync commands are now exposed through the v3 CLI
+- The legacy monolith remains available as a fallback, but v3 is the preferred path forward
+
 ## v3 Principles
 1. **Trust but verify** — every auto-generated entry must be reviewable.
 2. **Single source of truth** — database and files must stay synchronized.
