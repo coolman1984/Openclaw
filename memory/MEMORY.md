@@ -32,9 +32,11 @@
 - [ ] Reduce stale/duplicate entries in legacy logs
 
 ### Current Blockers
-1. **Termux/OpenCode binary compatibility** — newest OpenCode binary requires libc unavailable in this environment
+1. **GitHub SSH authentication** — repository remote is configured, but GitHub has not yet authorized the generated SSH key for this device
+   - Workaround: Add the public key to GitHub, or use a PAT over HTTPS
+2. **Termux/OpenCode binary compatibility** — newest OpenCode binary requires libc unavailable in this environment
    - Workaround: Use the Go API directly or run OpenCode in a glibc Linux environment
-2. **Legacy dashboard drift** — older summary still reflects pre-v2 state
+3. **Legacy dashboard drift** — older summary still reflects pre-v2 state
    - Resolution: Rebuild dashboard from current v2 memory data
 
 ### Recent Decisions
