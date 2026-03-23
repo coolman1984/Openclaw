@@ -20,6 +20,8 @@ __pycache__/
 
 # Generated / downloaded artifacts
 node_modules/
+package.json
+package-lock.json
 *.tar.gz
 *.deb
 ripgrep-*/
