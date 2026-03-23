@@ -103,6 +103,7 @@ class Task:
         self.status = "blocked"
         blocker = Blocker.create(title=reason, related_task=self.id)
         self.blockers.append(blocker.id)
+        return blocker
     
     def start(self):
         """Start task."""
@@ -351,12 +352,13 @@ class Conversation:
     @classmethod
     def create(cls, source: str, summary: str, raw_text: str, **kwargs) -> 'Conversation':
         """Create a new conversation record."""
+        context_hash = kwargs.pop("context_hash", compute_hash(raw_text))
         return cls(
             id=generate_id("conv"),
             source=source,
             summary=summary,
             raw_text=raw_text,
-            context_hash=compute_hash(raw_text),
+            context_hash=context_hash,
             **kwargs
         )
     
@@ -387,6 +389,10 @@ class Note:
     
     def to_dict(self) -> Dict:
         return asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> 'Note':
+        return cls(**data)
 
 
 @dataclass
@@ -547,7 +553,7 @@ class Entry:
             tasks=[Task.from_dict(t) for t in data.get('tasks', [])],
             decisions=[Decision.from_dict(d) for d in data.get('decisions', [])],
             blockers=[Blocker.from_dict(b) for b in data.get('blockers', [])],
-            notes=[Note.create(**n) if isinstance(n, dict) else n for n in data.get('notes', [])],
+            notes=[Note.from_dict(n) if isinstance(n, dict) else n for n in data.get('notes', [])],
             conversations=[Conversation.from_dict(c) for c in data.get('conversations', [])],
             metrics=Metrics.from_dict(data.get('metrics', {})),
             tags=data.get('tags', []),

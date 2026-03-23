@@ -4,6 +4,7 @@ Configuration Management for Memory System
 
 import json
 import os
+import copy
 from pathlib import Path
 from typing import Dict, Any, Optional
 
@@ -98,11 +99,11 @@ class Config:
         
         # Create default config
         self.save(DEFAULT_CONFIG)
-        return DEFAULT_CONFIG.copy()
+        return copy.deepcopy(DEFAULT_CONFIG)
     
     def _merge(self, default: Dict, user: Dict) -> Dict:
         """Recursively merge user config with defaults."""
-        result = default.copy()
+        result = copy.deepcopy(default)
         for key, value in user.items():
             if key in result and isinstance(result[key], dict) and isinstance(value, dict):
                 result[key] = self._merge(result[key], value)

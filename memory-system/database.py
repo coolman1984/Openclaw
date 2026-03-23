@@ -47,13 +47,13 @@ class Database:
     END;
 
     CREATE TRIGGER IF NOT EXISTS entries_ad AFTER DELETE ON entries BEGIN
-        INSERT INTO entries_fts(entries_fts, rowid, summary_title, summary_description)
-        VALUES ('delete', old.rowid, old.summary_title, old.summary_description);
+        INSERT INTO entries_fts(entries_fts, id, rowid, summary_title, summary_description)
+        VALUES ('delete', old.id, old.rowid, old.summary_title, old.summary_description);
     END;
 
     CREATE TRIGGER IF NOT EXISTS entries_au AFTER UPDATE ON entries BEGIN
-        INSERT INTO entries_fts(entries_fts, rowid, summary_title, summary_description)
-        VALUES ('delete', old.rowid, old.summary_title, old.summary_description);
+        INSERT INTO entries_fts(entries_fts, id, rowid, summary_title, summary_description)
+        VALUES ('delete', old.id, old.rowid, old.summary_title, old.summary_description);
         INSERT INTO entries_fts(id, summary_title, summary_description)
         VALUES (new.id, new.summary_title, new.summary_description);
     END;
@@ -182,6 +182,8 @@ class Database:
         self._ensure_directory()
         self.conn = sqlite3.connect(db_path)
         self.conn.row_factory = sqlite3.Row
+        self.conn.execute('PRAGMA foreign_keys = ON')
+        self.conn.execute('PRAGMA journal_mode = WAL')
         self._init_schema()
     
     def _ensure_directory(self):
@@ -297,6 +299,14 @@ class Database:
     def delete_entry(self, date: str) -> None:
         """Delete entry and related data."""
         cursor = self.conn.cursor()
+        entry = self.get_entry(date)
+        if entry:
+            for task in entry.tasks:
+                self.delete_task(task.id)
+            for decision in entry.decisions:
+                self.delete_decision(decision.id)
+            for blocker in entry.blockers:
+                self.delete_blocker(blocker.id)
         cursor.execute("DELETE FROM entries WHERE id = ?", (date,))
         cursor.execute("DELETE FROM entry_tags WHERE entry_id = ?", (date,))
         cursor.execute("DELETE FROM tasks WHERE entry_date = ?", (date,))
@@ -464,6 +474,12 @@ class Database:
         
         rows = cursor.fetchall()
         return [Decision.from_dict(json.loads(row['raw_json'])) for row in rows]
+
+    def delete_decision(self, decision_id: str) -> None:
+        """Delete decision."""
+        cursor = self.conn.cursor()
+        cursor.execute("DELETE FROM decisions WHERE id = ?", (decision_id,))
+        self.conn.commit()
     
     # Blocker operations
     
@@ -550,6 +566,12 @@ class Database:
                 escalated.append(blocker)
         
         return escalated
+
+    def delete_blocker(self, blocker_id: str) -> None:
+        """Delete blocker."""
+        cursor = self.conn.cursor()
+        cursor.execute("DELETE FROM blockers WHERE id = ?", (blocker_id,))
+        self.conn.commit()
     
     # Project operations
     

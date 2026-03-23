@@ -47,6 +47,18 @@ from utils import (
 SCHEMA_VERSION = "v3"
 
 
+def _safe_extract_tar(tar: tarfile.TarFile, path: Path) -> None:
+    """Safely extract a tar archive, preventing path traversal."""
+    base = path.resolve()
+    for member in tar.getmembers():
+        member_path = (base / member.name).resolve()
+        if not str(member_path).startswith(str(base)):
+            raise ValueError(f"Unsafe path in archive: {member.name}")
+        if member.issym() or member.islnk():
+            raise ValueError(f"Unsafe link in archive: {member.name}")
+    tar.extractall(base)
+
+
 def runtime():
     config = Config()
     config.ensure_directories()
@@ -330,7 +342,7 @@ def cmd_restore(args):
         if not args.yes and not confirm(f"Restore from {archive.name}? This will overwrite files."):
             return
         with tarfile.open(archive, "r:gz") as tar:
-            tar.extractall(ROOT)
+            _safe_extract_tar(tar, ROOT)
         print_success(f"Restored snapshot from {archive}")
     finally:
         db.close()

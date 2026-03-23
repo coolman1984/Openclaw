@@ -190,11 +190,22 @@ class SyncManager:
         """Auto-fix integrity issues."""
         for issue in issues:
             if "Orphaned task" in issue:
-                # Extract task ID
                 import re
                 match = re.search(r'task_\w+', issue)
                 if match:
                     self.db.delete_task(match.group())
+            
+            elif "Orphaned decision" in issue:
+                import re
+                match = re.search(r'decision_\w+', issue)
+                if match:
+                    self.db.delete_decision(match.group())
+            
+            elif "Orphaned blocker" in issue:
+                import re
+                match = re.search(r'blocker_\w+', issue)
+                if match:
+                    self.db.delete_blocker(match.group())
             
             elif "Missing JSON file" in issue:
                 # Re-export entry

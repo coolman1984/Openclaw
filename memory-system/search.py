@@ -245,7 +245,7 @@ class SearchEngine:
         
         # Simple case-insensitive highlighting
         pattern = re.compile(re.escape(query), re.IGNORECASE)
-        return pattern.sub(f"{Colors.YELLOW}\\g<0>{Colors.ENDC}", text)
+        return pattern.sub(f"{Colors.WARNING}\\g<0>{Colors.ENDC}", text)
 
 
 class QueryParser:

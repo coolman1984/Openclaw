@@ -15,13 +15,14 @@
 - Dev Assistant app built
 - **Operational Memory System v2 completed and initialized**
 - **Memory System v3 planning requested and wrapper created**
+- **Memory system hardening pass applied from reported bug list**
 - GitHub repo uploaded and README refreshed for visitors
 
 ### Active Projects
 | Project | Status | Last Updated | Next Action |
 |---------|--------|--------------|-------------|
 | Memory System v2 | Complete | 2026-03-23 | Keep using it; stabilize and monitor |
-| Memory System v3 | In Progress | 2026-03-23 | Review wrapper and finalize migration/adoption |
+| Memory System v3 | In Progress | 2026-03-23 | Review wrapper, hardening pass, and finalize migration/adoption |
 | OpenCode Setup | In Progress | 2026-03-23 | Validate config with Go API and environment constraints |
 | OpenCode Go | Active | 2026-03-23 | Use Go models for coding tasks |
 | GitHub Repo | Complete | 2026-03-23 | Maintain repo and improve documentation |
@@ -34,11 +35,9 @@
 - [ ] Reduce stale/duplicate entries in legacy logs
 
 ### Current Blockers
-1. **GitHub sync** — repository has been successfully pushed to GitHub via SSH
-   - Status: Complete
-2. **Termux/OpenCode binary compatibility** — newest OpenCode binary requires libc unavailable in this environment
+1. **Termux/OpenCode binary compatibility** — newest OpenCode binary requires libc unavailable in this environment
    - Workaround: Use the Go API directly or run OpenCode in a glibc Linux environment
-3. **Legacy dashboard drift** — older summary still reflects pre-v2 state
+2. **Legacy dashboard drift** — older summary still reflects pre-v2 state
    - Resolution: Rebuild dashboard from current v2 memory data
 
 ### Recent Decisions
@@ -126,10 +125,11 @@
   - v3 will improve dashboard freshness and indexing
   - v3 will add backup/versioning/restore discipline as first-class features
   - v3 will be the preferred entry point; the monolith remains as fallback
+  - v3 is now being hardened with the reported bug fixes
 - **Open Tasks:**
   - [ ] Finalize migration/adoption steps
   - [ ] Decide whether to retire the monolith or keep it as fallback
-  - [ ] Add stronger schema validation and workflow enforcement if needed
+  - [ ] Continue reviewing edge cases after hardening pass
 - **Blockers:** None
 - **Next Milestone:** Approve adoption of `memory-v3.py` as the default CLI
 - **References:**

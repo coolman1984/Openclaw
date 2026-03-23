@@ -60,7 +60,8 @@ class AutoEntryGenerator:
             return result
         
         if auto_create:
-            # Save directly
+            # Save directly, merging into an existing same-day entry when present
+            entry = self._merge_with_existing_entry(entry)
             self.db.save_entry(entry)
             result['created'] = True
         else:
@@ -100,6 +101,7 @@ class AutoEntryGenerator:
                 priority=task_data.get('priority', 'medium'),
                 tags=['auto-extracted']
             )
+            task.entry_date = date
             task_objects.append(task)
             task_ids.append(task.id)
         
@@ -174,6 +176,33 @@ class AutoEntryGenerator:
         
         return entry
     
+    def _merge_with_existing_entry(self, entry: Entry) -> Entry:
+        """Merge auto-generated content into an existing same-day entry if one exists."""
+        existing = self.db.get_entry(entry.date)
+        if not existing:
+            return entry
+
+        def merge_unique(existing_items, new_items, key='id'):
+            seen = {getattr(item, key, None) for item in existing_items}
+            for item in new_items:
+                value = getattr(item, key, None)
+                if value not in seen:
+                    existing_items.append(item)
+                    seen.add(value)
+            return existing_items
+
+        existing.tasks = merge_unique(existing.tasks, entry.tasks)
+        existing.decisions = merge_unique(existing.decisions, entry.decisions)
+        existing.blockers = merge_unique(existing.blockers, entry.blockers)
+        existing.conversations.extend(entry.conversations)
+        existing.tags = sorted(set(existing.tags + entry.tags))
+        existing.references = sorted(set(existing.references + entry.references))
+        existing.timestamp_updated = datetime.now().isoformat()
+        existing.metrics.tasks_created += entry.metrics.tasks_created
+        existing.metrics.decisions_made += entry.metrics.decisions_made
+        existing.metrics.blockers_identified += entry.metrics.blockers_identified
+        return existing
+    
     def approve_pending_parse(self, parse_id: str) -> bool:
         """Approve and create entry from pending parse."""
         # Get pending parse
@@ -190,7 +219,8 @@ class AutoEntryGenerator:
         data = json.loads(row['extracted_data'])
         entry = Entry.from_dict(data['entry'])
         
-        # Save entry
+        # Merge and save entry
+        entry = self._merge_with_existing_entry(entry)
         self.db.save_entry(entry)
         
         # Mark as approved
