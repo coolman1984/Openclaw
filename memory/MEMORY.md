@@ -17,6 +17,7 @@
 - **Memory System v3 planning requested and wrapper created**
 - **Memory system hardening pass applied from reported bug list**
 - **Orchestration CEO skill created and packaged**
+- **Task Watch skill created and packaged**
 - GitHub repo uploaded and README refreshed for visitors
 
 ### Active Projects
@@ -27,6 +28,8 @@
 | OpenCode Setup | In Progress | 2026-03-23 | Validate config with Go API and environment constraints |
 | OpenCode Go | Active | 2026-03-23 | Use Go models for coding tasks |
 | GitHub Repo | Complete | 2026-03-23 | Maintain repo and improve documentation |
+| Orchestration CEO Skill | Complete | 2026-03-24 | Use as top-level routing/control skill |
+| Task Watch Skill | Complete | 2026-03-24 | Use for pending-task monitoring and follow-up |
 
 ### Pending Tasks
 - [ ] Finalize v3 migration/adoption steps
@@ -137,6 +140,32 @@
   - Proposed plan file: `memory-system/IMPLEMENTATION_PLAN_V3.md`
   - New CLI: `memory-system/memory-v3.py`
 
+### Orchestration CEO Skill
+- **Objective:** Top-level orchestration skill for routing, delegation, review, and recovery
+- **Current Status:** Complete
+- **Key Decisions:**
+  - Use it as the control tower for multi-step work
+  - Keep a routing playbook alongside the skill
+- **Open Tasks:** None
+- **Blockers:** None
+- **Next Milestone:** Apply it to future complex workflows
+- **References:**
+  - `skills/orchestration-ceo/SKILL.md`
+  - `skills/orchestration-ceo/references/routing-playbook.md`
+
+### Task Watch Skill
+- **Objective:** Pending-task monitoring and follow-up skill
+- **Current Status:** Complete
+- **Key Decisions:**
+  - Use 2-minute re-checks while work is pending
+  - Notify immediately when tasks complete
+- **Open Tasks:** None
+- **Blockers:** None
+- **Next Milestone:** Use it for future waiting/review loops
+- **References:**
+  - `skills/task-watch/SKILL.md`
+  - `skills/task-watch/references/watch-playbook.md`
+
 ---
 
 ## Daily Log Index
@@ -144,6 +173,7 @@
 | Date | Projects | Key Events |
 |------|----------|------------|
 | 2026-03-23 | OpenCode Setup, Identity Establishment, Memory System v2, Memory System v3 | Initial setup, OpenCode/Go work, memory system build, v3 planning |
+| 2026-03-24 | Heartbeat, Orchestration CEO, Task Watch | Operating rules, orchestration skill, pending-task watcher |
 
 ---
 
