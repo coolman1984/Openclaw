@@ -23,6 +23,7 @@
 - **Capability sync command created**
 - **Operating loop and status-label protocol adopted**
 - **Common operating policy adopted**
+- **Builder specialist created and wired into routing**
 - GitHub repo uploaded and README refreshed for visitors
 
 ### Active Projects
@@ -38,6 +39,7 @@
 | Capability-First Skill | Complete | 2026-03-24 | Check existing skills/tools before fresh reasoning |
 | Capability Registry Updater | Complete | 2026-03-24 | Keep skills/tools registry current automatically |
 | Capability Sync Command | Complete | 2026-03-24 | Register new tools and refresh registry in one step |
+| Builder Specialist | Complete | 2026-03-24 | Use for implementation work and concrete builds |
 
 ### Pending Tasks
 - [ ] Finalize v3 migration/adoption steps
@@ -219,6 +221,19 @@
   - `skills/capability-first/scripts/sync_capabilities.py`
   - `skills/capability-first/references/capability-inventory.json`
 
+### Builder Specialist
+- **Objective:** Implementation specialist for coding, setup, configs, scripts, and technical fixes
+- **Current Status:** Complete
+- **Key Decisions:**
+  - Use Builder as the execution arm for implementation work
+  - Keep the return format strict and concise
+- **Open Tasks:** None
+- **Blockers:** None
+- **Next Milestone:** Route implementation tasks to Builder by default
+- **References:**
+  - `skills/builder/SKILL.md`
+  - `skills/builder/references/builder-playbook.md`
+
 ---
 
 ## Daily Log Index
@@ -226,7 +241,7 @@
 | Date | Projects | Key Events |
 |------|----------|------------|
 | 2026-03-23 | OpenCode Setup, Identity Establishment, Memory System v2, Memory System v3 | Initial setup, OpenCode/Go work, memory system build, v3 planning |
-| 2026-03-24 | Heartbeat, Orchestration CEO, Task Watch, Capability-First, Capability Registry, Capability Sync | Operating rules, orchestration skill, pending-task watcher, capability routing, living registry, sync command |
+| 2026-03-24 | Heartbeat, Orchestration CEO, Task Watch, Capability-First, Capability Registry, Capability Sync, Builder | Operating rules, orchestration skill, pending-task watcher, capability routing, living registry, sync command, implementation specialist |
 
 ---
 
@@ -240,6 +255,7 @@
 - Capability-First → New skill / routing protocol
 - Capability Registry → Living inventory of skills/tools
 - Capability Sync → Registry refresh and tool registration
+- Builder → Implementation specialist
 - Dashboard → Memory System v2/v3 status
 
 **By Date:**

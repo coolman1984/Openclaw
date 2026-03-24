@@ -31,6 +31,7 @@ Provide sub-agents:
 - forbidden actions
 - output format
 - deadline or checkpoint
+- preferred specialist (e.g. Builder for implementation)
 
 ## Checkpoint template
 - What was attempted?

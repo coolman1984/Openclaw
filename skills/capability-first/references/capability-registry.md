@@ -2,9 +2,12 @@
 
 This registry is the first place to check before doing fresh reasoning.
 
-_Generated: 2026-03-24T09:00:29_
+_Generated: 2026-03-24T09:36:03_
 
 ## Skills
+
+### `builder`
+Execution specialist for implementation work. Use for coding, setup steps, configurations, scripts, technical fixes, and concrete build plans. Produces working output, flags risks clearly, and returns concise implementation packages.
 
 ### `capability-first`
 Silent pre-task routing for OpenClaw. Use when deciding how to handle any request by checking existing skills, tools, reusable workflows, or delegated execution before doing fresh reasoning. This skill prevents duplicated work, wasted tokens, and rebuilding known workflows from scratch.
