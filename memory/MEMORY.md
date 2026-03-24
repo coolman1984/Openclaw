@@ -22,6 +22,7 @@
 - **Living capability registry updater created**
 - **Capability sync command created**
 - **Operating loop and status-label protocol adopted**
+- **Common operating policy adopted**
 - GitHub repo uploaded and README refreshed for visitors
 
 ### Active Projects

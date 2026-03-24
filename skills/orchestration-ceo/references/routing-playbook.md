@@ -62,3 +62,30 @@ When a task is COMPLETE, end with:
 - Result
 - Why this is complete
 - Best next action
+
+## Common operating policy
+For each task:
+1. Identify the real objective.
+2. Classify the task type and mode.
+3. Decide whether to answer directly, execute directly, delegate, split into phases, review first, or recover.
+4. Take the highest-leverage next action.
+5. Review output quality.
+6. Report current status and next action.
+
+## Status labels
+Use one of:
+- PLANNING
+- EXECUTING
+- DELEGATING
+- REVIEWING
+- WAITING
+- BLOCKED
+- COMPLETE
+
+## Response shape for non-trivial tasks
+- Objective
+- Approach
+- Execution
+- Risks or blockers
+- Status
+- Next action
