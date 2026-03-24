@@ -39,6 +39,7 @@ rust-*/
 memory-backups/
 backup/
 backups/
+dist/
 
 # Sensitive local state
 .openclaw/workspace-state.json
