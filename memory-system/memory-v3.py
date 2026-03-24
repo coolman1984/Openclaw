@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import argparse
 import os
+import shutil
+import subprocess
 import sys
 import tarfile
 from datetime import datetime
@@ -57,6 +59,41 @@ def _safe_extract_tar(tar: tarfile.TarFile, path: Path) -> None:
         if member.issym() or member.islnk():
             raise ValueError(f"Unsafe link in archive: {member.name}")
     tar.extractall(base)
+
+
+def _git_run(args: List[str], cwd: Path = ROOT.parent) -> subprocess.CompletedProcess:
+    return subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True)
+
+
+def _git_is_repo() -> bool:
+    return (ROOT.parent / ".git").exists()
+
+
+def _latest_backup_info() -> Optional[dict]:
+    backup_dir = ROOT / "backups"
+    backups = sorted(backup_dir.glob("*.tar.gz"), key=lambda p: p.stat().st_mtime, reverse=True)
+    if not backups:
+        return None
+    latest = backups[0]
+    stat = latest.stat()
+    age_hours = (datetime.now().timestamp() - stat.st_mtime) / 3600.0
+    return {
+        "file": str(latest),
+        "size": stat.st_size,
+        "age_hours": age_hours,
+        "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+    }
+
+
+def _workspace_disk_usage() -> dict:
+    usage = shutil.disk_usage(ROOT.parent)
+    used_pct = (usage.used / usage.total) * 100 if usage.total else 0
+    return {
+        "total_gb": usage.total / (1024 ** 3),
+        "used_gb": usage.used / (1024 ** 3),
+        "free_gb": usage.free / (1024 ** 3),
+        "used_pct": used_pct,
+    }
 
 
 def runtime():
@@ -366,6 +403,56 @@ def cmd_validate(args):
         db.close()
 
 
+def cmd_health(args):
+    config, db = runtime()
+    try:
+        sync = SyncManager(db, config)
+        issues = sync.verify()
+        stats = db.get_stats()
+        pending = db.get_pending_parses()
+        latest_backup = _latest_backup_info()
+        disk = _workspace_disk_usage()
+        git_clean = None
+        git_branch = None
+        git_remote = None
+        if _git_is_repo():
+            status = _git_run(["status", "--porcelain"]) 
+            git_clean = (status.returncode == 0 and not status.stdout.strip())
+            branch = _git_run(["rev-parse", "--abbrev-ref", "HEAD"])
+            if branch.returncode == 0:
+                git_branch = branch.stdout.strip()
+            remote = _git_run(["remote", "get-url", "origin"])
+            if remote.returncode == 0:
+                git_remote = remote.stdout.strip()
+
+        print_header("Memory Health Check")
+        rows = [
+            ["Integrity", "PASS" if not issues else f"{len(issues)} issue(s)"],
+            ["Entries", str(stats['total_entries'])],
+            ["Active Tasks", str(stats['active_tasks'])],
+            ["Active Blockers", str(stats['active_blockers'])],
+            ["Pending Parses", str(len(pending))],
+            ["Latest Backup", "none" if not latest_backup else f"{latest_backup['age_hours']:.1f}h ago"],
+            ["Disk Usage", f"{disk['used_pct']:.1f}%"],
+            ["Git Repo", "yes" if _git_is_repo() else "no"],
+            ["Git Clean", "unknown" if git_clean is None else ("yes" if git_clean else "no")],
+        ]
+        if git_branch:
+            rows.append(["Git Branch", git_branch])
+        if git_remote:
+            rows.append(["Git Remote", git_remote])
+        print(table(rows, headers=["Check", "Value"]))
+
+        if issues:
+            print_warning("Integrity issues:")
+            for issue in issues:
+                print(f" - {issue}")
+        if latest_backup:
+            print_info(f"Latest backup: {latest_backup['file']}")
+    finally:
+        db.close()
+
+
 def cmd_sync(args):
     config, db = runtime()
     try:
@@ -394,6 +481,64 @@ def cmd_sync(args):
         db.close()
 
 
+def _git_commit_and_push(commit_message: str) -> bool:
+    if not _git_is_repo():
+        print_warning("No git repository found; skipping push.")
+        return False
+
+    add = _git_run(["add", "-A"])
+    if add.returncode != 0:
+        print_error(add.stderr.strip() or add.stdout.strip() or "git add failed")
+        return False
+
+    status = _git_run(["status", "--porcelain"])
+    if status.returncode != 0:
+        print_error(status.stderr.strip() or status.stdout.strip() or "git status failed")
+        return False
+
+    if not status.stdout.strip():
+        print_info("No git changes to commit.")
+    else:
+        commit = _git_run(["commit", "-m", commit_message])
+        if commit.returncode != 0:
+            print_error(commit.stderr.strip() or commit.stdout.strip() or "git commit failed")
+            return False
+        print_success(commit.stdout.strip() or "Committed changes")
+
+    push = _git_run(["push"])
+    if push.returncode != 0:
+        print_error(push.stderr.strip() or push.stdout.strip() or "git push failed")
+        return False
+
+    print_success("Pushed git updates")
+    return True
+
+
+def cmd_maintain(args):
+    config, db = runtime()
+    try:
+        sync = SyncManager(db, config)
+        issues = sync.verify()
+        if issues:
+            print_warning(f"{len(issues)} issue(s) found before maintenance")
+            if args.fix:
+                sync.fix_issues(issues)
+                print_success("Applied sync fixes before maintenance")
+
+        escalated = db.check_auto_escalations()
+        if escalated:
+            print_info(f"Auto-escalated {len(escalated)} blocker(s)")
+
+        archive = _create_snapshot(include_code=args.include_code, name=args.name)
+        print_success(f"Created backup: {archive}")
+
+        if args.push:
+            commit_message = args.commit_message or f"Memory maintenance {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+            _git_commit_and_push(commit_message)
+    finally:
+        db.close()
+
+
 def cmd_parse(args):
     config, db = runtime()
     try:
@@ -412,11 +557,14 @@ def cmd_parse(args):
             source=args.source,
             auto_create=args.auto_create,
             dry_run=False,
+            force_create=args.force_create,
         )
         print(table([
             ["Tasks", str(result['extracted']['tasks'])],
             ["Decisions", str(result['extracted']['decisions'])],
             ["Blockers", str(result['extracted']['blockers'])],
+            ["Approval Required", str(result.get('approval_required'))],
+            ["Confidence", str(result.get('confidence_summary', {}))],
             ["Created", str(result['created'])],
             ["Pending Approval", str(result['pending_approval'])],
             ["Parse ID", str(result['parse_id'])],
@@ -470,6 +618,8 @@ Examples:
   %(prog)s search "authentication" --advanced
   %(prog)s report daily
   %(prog)s backup create --include-code
+  %(prog)s maintain --push --include-code
+  %(prog)s health
   %(prog)s validate --fix
   %(prog)s parse --file chat.txt --auto-create
         """,
@@ -532,6 +682,9 @@ Examples:
     p.add_argument("--fix", action="store_true")
     p.set_defaults(func=cmd_validate)
 
+    p = subparsers.add_parser("health", help="Show a memory health report")
+    p.set_defaults(func=cmd_health)
+
     p = subparsers.add_parser("backup", help="Backup memory data")
     bp = p.add_subparsers(dest="backup_action", required=True)
     c = bp.add_parser("create", help="Create a tar.gz snapshot")
@@ -551,7 +704,16 @@ Examples:
     p.add_argument("--source", default="unknown")
     p.add_argument("--preview", action="store_true")
     p.add_argument("--auto-create", action="store_true")
+    p.add_argument("--force-create", action="store_true", help="Bypass approval gate for low-confidence auto-extraction")
     p.set_defaults(func=cmd_parse)
+
+    p = subparsers.add_parser("maintain", help="Run backup, sync checks, and optional git push")
+    p.add_argument("--push", action="store_true", help="Commit and push maintenance changes")
+    p.add_argument("--include-code", action="store_true", help="Include code/docs in snapshot")
+    p.add_argument("--name")
+    p.add_argument("--commit-message")
+    p.add_argument("--fix", action="store_true", help="Auto-fix integrity issues first")
+    p.set_defaults(func=cmd_maintain)
 
     p = subparsers.add_parser("pending", help="List pending auto-extraction parses")
     p.set_defaults(func=cmd_pending)

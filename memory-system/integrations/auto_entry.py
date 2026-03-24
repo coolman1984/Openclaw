@@ -24,7 +24,9 @@ class AutoEntryGenerator:
                                    conversation_text: str,
                                    source: str = 'unknown',
                                    auto_create: bool = False,
-                                   dry_run: bool = False) -> Dict[str, Any]:
+                                   dry_run: bool = False,
+                                   force_create: bool = False,
+                                   approval_threshold: str = 'high') -> Dict[str, Any]:
         """Generate entry from conversation."""
         
         # Parse the conversation
@@ -34,6 +36,12 @@ class AutoEntryGenerator:
         valid_tasks = [t for t in parsed['tasks'] if self.validator.validate_task(t)]
         valid_decisions = [d for d in parsed['decisions'] if self.validator.validate_decision(d)]
         valid_blockers = [b for b in parsed['blockers'] if self.validator.validate_blocker(b)]
+        approval_required = self._requires_approval(
+            valid_tasks, valid_decisions, valid_blockers, approval_threshold
+        )
+        confidence_summary = self._confidence_summary(
+            valid_tasks, valid_decisions, valid_blockers
+        )
         
         # Create entry
         entry = self._create_entry(
@@ -51,6 +59,8 @@ class AutoEntryGenerator:
                 'decisions': len(valid_decisions),
                 'blockers': len(valid_blockers)
             },
+            'confidence_summary': confidence_summary,
+            'approval_required': approval_required,
             'created': False,
             'pending_approval': False,
             'parse_id': None
@@ -59,7 +69,7 @@ class AutoEntryGenerator:
         if dry_run:
             return result
         
-        if auto_create:
+        if auto_create and (force_create or not approval_required):
             # Save directly, merging into an existing same-day entry when present
             entry = self._merge_with_existing_entry(entry)
             self.db.save_entry(entry)
@@ -73,7 +83,11 @@ class AutoEntryGenerator:
                 raw_text=conversation_text,
                 extracted_data={
                     'entry': entry.to_dict(),
-                    'parsed': parsed
+                    'parsed': parsed,
+                    'approval_required': approval_required,
+                    'confidence_summary': confidence_summary,
+                    'force_create': force_create,
+                    'approval_threshold': approval_threshold,
                 }
             )
             result['pending_approval'] = True
@@ -81,6 +95,29 @@ class AutoEntryGenerator:
         
         return result
     
+    def _confidence_rank(self, confidence: str) -> int:
+        ranks = {'low': 0, 'medium': 1, 'high': 2}
+        return ranks.get((confidence or '').lower(), 0)
+
+    def _requires_approval(self, tasks: List[Dict], decisions: List[Dict], blockers: List[Dict], threshold: str) -> bool:
+        rank_threshold = self._confidence_rank(threshold)
+        for item in tasks + decisions + blockers:
+            if self._confidence_rank(item.get('confidence', 'low')) < rank_threshold:
+                return True
+        return False
+
+    def _confidence_summary(self, tasks: List[Dict], decisions: List[Dict], blockers: List[Dict]) -> Dict[str, Any]:
+        items = tasks + decisions + blockers
+        summary = {'high': 0, 'medium': 0, 'low': 0}
+        for item in items:
+            confidence = (item.get('confidence') or 'low').lower()
+            if confidence in summary:
+                summary[confidence] += 1
+            else:
+                summary['low'] += 1
+        summary['total'] = len(items)
+        return summary
+
     def _create_entry(self,
                       summary: str,
                       tasks: List[Dict],
@@ -258,6 +295,9 @@ class AutoEntryGenerator:
             lines.append(f"  - [{task['priority']}] {task['title']}")
         
         lines.extend([
+            "",
+            f"Approval required: {result.get('approval_required', False)}",
+            f"Confidence summary: {result.get('confidence_summary', {})}",
             "",
             f"Decisions to create ({result['extracted']['decisions']}):",
         ])
