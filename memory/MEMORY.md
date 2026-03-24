@@ -20,6 +20,7 @@
 - **Task Watch skill created and packaged**
 - **Capability-First skill created and packaged**
 - **Living capability registry updater created**
+- **Capability sync command created**
 - GitHub repo uploaded and README refreshed for visitors
 
 ### Active Projects
@@ -34,6 +35,7 @@
 | Task Watch Skill | Complete | 2026-03-24 | Use for pending-task monitoring and follow-up |
 | Capability-First Skill | Complete | 2026-03-24 | Check existing skills/tools before fresh reasoning |
 | Capability Registry Updater | Complete | 2026-03-24 | Keep skills/tools registry current automatically |
+| Capability Sync Command | Complete | 2026-03-24 | Register new tools and refresh registry in one step |
 
 ### Pending Tasks
 - [ ] Finalize v3 migration/adoption steps
@@ -193,12 +195,27 @@
 - **Key Decisions:**
   - Scan skills directory and regenerate registry automatically
   - Keep a curated tools/workflows section in the generated registry
+  - Use an inventory file for tools/workflows so new tools can be added deliberately
 - **Open Tasks:** None
 - **Blockers:** None
 - **Next Milestone:** Rerun updater whenever capabilities change
 - **References:**
   - `skills/capability-first/scripts/update_registry.py`
   - `skills/capability-first/references/capability-registry.md`
+  - `skills/capability-first/references/capability-inventory.json`
+
+### Capability Sync Command
+- **Objective:** Register new tools and refresh the capability registry in one step
+- **Current Status:** Complete
+- **Key Decisions:**
+  - Keep skill discovery automatic
+  - Make tool registration explicit and inventory-backed
+- **Open Tasks:** None
+- **Blockers:** None
+- **Next Milestone:** Use the sync command whenever a new tool is created or discovered
+- **References:**
+  - `skills/capability-first/scripts/sync_capabilities.py`
+  - `skills/capability-first/references/capability-inventory.json`
 
 ---
 
@@ -207,7 +224,7 @@
 | Date | Projects | Key Events |
 |------|----------|------------|
 | 2026-03-23 | OpenCode Setup, Identity Establishment, Memory System v2, Memory System v3 | Initial setup, OpenCode/Go work, memory system build, v3 planning |
-| 2026-03-24 | Heartbeat, Orchestration CEO, Task Watch, Capability-First, Capability Registry | Operating rules, orchestration skill, pending-task watcher, capability routing, living registry |
+| 2026-03-24 | Heartbeat, Orchestration CEO, Task Watch, Capability-First, Capability Registry, Capability Sync | Operating rules, orchestration skill, pending-task watcher, capability routing, living registry, sync command |
 
 ---
 
@@ -220,6 +237,7 @@
 - Memory System v3 → Planning
 - Capability-First → New skill / routing protocol
 - Capability Registry → Living inventory of skills/tools
+- Capability Sync → Registry refresh and tool registration
 - Dashboard → Memory System v2/v3 status
 
 **By Date:**

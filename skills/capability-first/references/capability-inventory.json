@@ -1,0 +1,48 @@
+{
+  "sections": [
+    {
+      "title": "Core runtime tools",
+      "items": [
+        {"name": "read", "description": "Read file contents from the workspace."},
+        {"name": "write", "description": "Create or overwrite files in the workspace."},
+        {"name": "edit", "description": "Make precise text replacements in existing files."},
+        {"name": "exec", "description": "Run shell commands and scripts."},
+        {"name": "process", "description": "Manage background exec sessions."},
+        {"name": "web_search", "description": "Search the web using DuckDuckGo."},
+        {"name": "web_fetch", "description": "Fetch and extract readable web content."},
+        {"name": "memory_search", "description": "Search memory files and transcripts semantically."},
+        {"name": "memory_get", "description": "Read targeted memory snippets safely."},
+        {"name": "sessions_spawn", "description": "Spawn a sub-agent or ACP session."},
+        {"name": "sessions_yield", "description": "Yield control while waiting for sub-agent results."},
+        {"name": "sessions_list", "description": "List sessions and recent activity."},
+        {"name": "sessions_history", "description": "Fetch session history."},
+        {"name": "sessions_send", "description": "Send a message into another session."},
+        {"name": "subagents", "description": "List, steer, or kill sub-agent runs."},
+        {"name": "session_status", "description": "Show session status and usage card."}
+      ]
+    },
+    {
+      "title": "Orchestration helpers",
+      "items": [
+        {"name": "multi_tool_use.parallel", "description": "Run multiple compatible tools in parallel."},
+        {"name": "skill-creator", "description": "Create, improve, audit, and package AgentSkills."},
+        {"name": "orchestration-ceo", "description": "Top-level routing and control skill."},
+        {"name": "task-watch", "description": "Pending-work monitoring and completion follow-up."},
+        {"name": "capability-first", "description": "Pre-task capability routing to reuse existing skills and tools first."}
+      ]
+    },
+    {
+      "title": "Workspace tools",
+      "items": [
+        {"name": "dev-assistant.py", "description": "Python CLI productivity dashboard."},
+        {"name": "multi-agent-coding.sh", "description": "Multi-agent coding workflow shell script."},
+        {"name": "memory-manager.py", "description": "Original monolithic memory manager CLI."},
+        {"name": "memory-v3.py", "description": "Modular memory manager v3 entry point."},
+        {"name": "memory-maintenance.sh", "description": "Daily memory maintenance helper."},
+        {"name": "memory-install-cron.sh", "description": "Cron installer for memory maintenance and audits."},
+        {"name": "capability-first/scripts/update_registry.py", "description": "Regenerate the capability registry from the current inventory."},
+        {"name": "capability-first/scripts/sync_capabilities.py", "description": "Register new skills or tools and refresh the registry."}
+      ]
+    }
+  ]
+}

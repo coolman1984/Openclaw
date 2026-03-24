@@ -63,7 +63,9 @@ If a workflow becomes stable, promote it into a skill, checklist, or automation.
 Whenever a new skill or tool is added, discovered, or built, refresh the capability registry with the updater script.
 
 ## Registry upkeep
-Use the registry updater to keep the living inventory current:
-- `python3 skills/capability-first/scripts/update_registry.py`
+Use the sync command to keep the living inventory current:
+- `python3 skills/capability-first/scripts/sync_capabilities.py --refresh`
+
+If a new skill or tool is created or discovered, register it through the sync command and refresh the registry immediately.
 
 The registry is the first source of truth for reuse decisions.

@@ -2,7 +2,7 @@
 
 This registry is the first place to check before doing fresh reasoning.
 
-_Generated: 2026-03-24T08:55:01_
+_Generated: 2026-03-24T09:00:29_
 
 ## Skills
 
@@ -19,28 +19,67 @@ Pending-work monitoring and completion follow-up for long-running tasks, sub-age
 
 ### Core runtime tools
 - `read`
+  - Read file contents from the workspace.
 - `write`
+  - Create or overwrite files in the workspace.
 - `edit`
+  - Make precise text replacements in existing files.
 - `exec`
+  - Run shell commands and scripts.
 - `process`
+  - Manage background exec sessions.
 - `web_search`
+  - Search the web using DuckDuckGo.
 - `web_fetch`
+  - Fetch and extract readable web content.
 - `memory_search`
+  - Search memory files and transcripts semantically.
 - `memory_get`
+  - Read targeted memory snippets safely.
 - `sessions_spawn`
+  - Spawn a sub-agent or ACP session.
 - `sessions_yield`
+  - Yield control while waiting for sub-agent results.
 - `sessions_list`
+  - List sessions and recent activity.
 - `sessions_history`
+  - Fetch session history.
 - `sessions_send`
+  - Send a message into another session.
 - `subagents`
+  - List, steer, or kill sub-agent runs.
 - `session_status`
+  - Show session status and usage card.
 
 ### Orchestration helpers
 - `multi_tool_use.parallel`
+  - Run multiple compatible tools in parallel.
 - `skill-creator`
-- `capability-first`
+  - Create, improve, audit, and package AgentSkills.
 - `orchestration-ceo`
+  - Top-level routing and control skill.
 - `task-watch`
+  - Pending-work monitoring and completion follow-up.
+- `capability-first`
+  - Pre-task capability routing to reuse existing skills and tools first.
+
+### Workspace tools
+- `dev-assistant.py`
+  - Python CLI productivity dashboard.
+- `multi-agent-coding.sh`
+  - Multi-agent coding workflow shell script.
+- `memory-manager.py`
+  - Original monolithic memory manager CLI.
+- `memory-v3.py`
+  - Modular memory manager v3 entry point.
+- `memory-maintenance.sh`
+  - Daily memory maintenance helper.
+- `memory-install-cron.sh`
+  - Cron installer for memory maintenance and audits.
+- `capability-first/scripts/update_registry.py`
+  - Regenerate the capability registry from the current inventory.
+- `capability-first/scripts/sync_capabilities.py`
+  - Register new skills or tools and refresh the registry.
 
 ## Routing rule of thumb
 
@@ -50,4 +89,4 @@ If the workflow repeats, convert it into a skill or automation.
 
 ## Maintenance rule
 
-Whenever a new skill or tool is created or discovered, rerun this generator and refresh the registry.
+Whenever a new skill or tool is created or discovered, rerun the sync script and refresh the registry.
