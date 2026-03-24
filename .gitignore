@@ -21,6 +21,7 @@ __pycache__/
 # Memory system generated runtime artifacts
 memory-system/data/
 memory-system/backups/
+memory-system/reports/
 memory-system/memory-config.json
 memory-system/MEMORY.md
 memory-system/MEMORY.v3.md

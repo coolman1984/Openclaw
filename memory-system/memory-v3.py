@@ -96,6 +96,141 @@ def _workspace_disk_usage() -> dict:
     }
 
 
+def _default_report_path(kind: str, stem: str) -> Path:
+    report_dir = ROOT / "reports" / kind
+    report_dir.mkdir(parents=True, exist_ok=True)
+    return report_dir / stem
+
+
+def _write_text_output(path: Path | str, content: str) -> Path:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content)
+    return path
+
+
+def _gather_health_snapshot(config: Config, db: Database) -> dict:
+    sync = SyncManager(db, config)
+    issues = sync.verify()
+    stats = db.get_stats()
+    pending = db.get_pending_parses()
+    latest_backup = _latest_backup_info()
+    disk = _workspace_disk_usage()
+    git_clean = None
+    git_branch = None
+    git_remote = None
+    if _git_is_repo():
+        status = _git_run(["status", "--porcelain"])
+        git_clean = (status.returncode == 0 and not status.stdout.strip())
+        branch = _git_run(["rev-parse", "--abbrev-ref", "HEAD"])
+        if branch.returncode == 0:
+            git_branch = branch.stdout.strip()
+        remote = _git_run(["remote", "get-url", "origin"])
+        if remote.returncode == 0:
+            git_remote = remote.stdout.strip()
+    return {
+        "issues": issues,
+        "stats": stats,
+        "pending": pending,
+        "latest_backup": latest_backup,
+        "disk": disk,
+        "git_clean": git_clean,
+        "git_branch": git_branch,
+        "git_remote": git_remote,
+        "git_repo": _git_is_repo(),
+    }
+
+
+def _health_rows(snapshot: dict) -> list:
+    latest_backup = snapshot["latest_backup"]
+    rows = [
+        ["Integrity", "PASS" if not snapshot["issues"] else f"{len(snapshot['issues'])} issue(s)"],
+        ["Entries", str(snapshot["stats"]["total_entries"])],
+        ["Active Tasks", str(snapshot["stats"]["active_tasks"])],
+        ["Active Blockers", str(snapshot["stats"]["active_blockers"])],
+        ["Pending Parses", str(len(snapshot["pending"]))],
+        ["Latest Backup", "none" if not latest_backup else f"{latest_backup['age_hours']:.1f}h ago"],
+        ["Disk Usage", f"{snapshot['disk']['used_pct']:.1f}%"],
+        ["Git Repo", "yes" if snapshot["git_repo"] else "no"],
+        ["Git Clean", "unknown" if snapshot["git_clean"] is None else ("yes" if snapshot["git_clean"] else "no")],
+    ]
+    if snapshot["git_branch"]:
+        rows.append(["Git Branch", snapshot["git_branch"]])
+    if snapshot["git_remote"]:
+        rows.append(["Git Remote", snapshot["git_remote"]])
+    return rows
+
+
+def _health_recommendations(snapshot: dict) -> list:
+    recs = []
+    if snapshot["issues"]:
+        recs.append("Run `validate --fix` to address integrity issues.")
+    if snapshot["pending"]:
+        recs.append("Review pending parses and approve or reject them.")
+    latest = snapshot["latest_backup"]
+    if not latest:
+        recs.append("Create a fresh backup snapshot now.")
+    elif latest["age_hours"] > 24:
+        recs.append("Backup is older than 24h; run maintenance and create a new snapshot.")
+    if snapshot["git_repo"] and snapshot["git_clean"] is False:
+        recs.append("Git has local changes; commit/push maintenance updates.")
+    if snapshot["disk"]["used_pct"] > 85:
+        recs.append("Disk usage is high; clean up backups or archive older logs.")
+    if not recs:
+        recs.append("System is healthy; keep daily maintenance and backups running.")
+    return recs
+
+
+def _health_markdown(snapshot: dict, title: str = "Memory Health Report") -> str:
+    now = datetime.now().isoformat(timespec="seconds")
+    lines = [
+        f"# {title}",
+        "",
+        f"- Generated: {now}",
+        f"- Integrity: {'PASS' if not snapshot['issues'] else f'{len(snapshot['issues'])} issue(s)'}",
+        f"- Entries: {snapshot['stats']['total_entries']}",
+        f"- Active Tasks: {snapshot['stats']['active_tasks']}",
+        f"- Active Blockers: {snapshot['stats']['active_blockers']}",
+        f"- Pending Parses: {len(snapshot['pending'])}",
+        f"- Latest Backup: {'none' if not snapshot['latest_backup'] else snapshot['latest_backup']['file']}",
+        f"- Disk Usage: {snapshot['disk']['used_pct']:.1f}%",
+        f"- Git Repo: {'yes' if snapshot['git_repo'] else 'no'}",
+        f"- Git Clean: {'unknown' if snapshot['git_clean'] is None else ('yes' if snapshot['git_clean'] else 'no')}",
+        "",
+        "## Recommendations",
+    ]
+    lines.extend([f"- {rec}" for rec in _health_recommendations(snapshot)])
+    if snapshot["issues"]:
+        lines.extend(["", "## Integrity Issues"])
+        lines.extend([f"- {issue}" for issue in snapshot["issues"]])
+    return "\n".join(lines) + "\n"
+
+
+def _audit_markdown(snapshot: dict, weekly_report: str, week: int, year: int) -> str:
+    audit_title = f"Weekly Memory Audit — {year}-W{week:02d}"
+    lines = [
+        f"# {audit_title}",
+        "",
+        f"- Generated: {datetime.now().isoformat(timespec='seconds')}",
+        f"- Integrity: {'PASS' if not snapshot['issues'] else f'{len(snapshot['issues'])} issue(s)'}",
+        f"- Entries: {snapshot['stats']['total_entries']}",
+        f"- Active Tasks: {snapshot['stats']['active_tasks']}",
+        f"- Active Blockers: {snapshot['stats']['active_blockers']}",
+        f"- Pending Parses: {len(snapshot['pending'])}",
+        f"- Latest Backup: {'none' if not snapshot['latest_backup'] else snapshot['latest_backup']['file']}",
+        "",
+        "## Audit Recommendations",
+    ]
+    lines.extend([f"- {rec}" for rec in _health_recommendations(snapshot)])
+    if snapshot["issues"]:
+        lines.extend(["", "## Integrity Issues"])
+        lines.extend([f"- {issue}" for issue in snapshot["issues"]])
+    lines.extend(["", "## Weekly Report", ""]) 
+    lines.append(weekly_report.rstrip())
+    lines.append("")
+    return "\n".join(lines)
+
+
 def runtime():
     config = Config()
     config.ensure_directories()
@@ -406,49 +541,15 @@ def cmd_validate(args):
 def cmd_health(args):
     config, db = runtime()
     try:
-        sync = SyncManager(db, config)
-        issues = sync.verify()
-        stats = db.get_stats()
-        pending = db.get_pending_parses()
-        latest_backup = _latest_backup_info()
-        disk = _workspace_disk_usage()
-        git_clean = None
-        git_branch = None
-        git_remote = None
-        if _git_is_repo():
-            status = _git_run(["status", "--porcelain"]) 
-            git_clean = (status.returncode == 0 and not status.stdout.strip())
-            branch = _git_run(["rev-parse", "--abbrev-ref", "HEAD"])
-            if branch.returncode == 0:
-                git_branch = branch.stdout.strip()
-            remote = _git_run(["remote", "get-url", "origin"])
-            if remote.returncode == 0:
-                git_remote = remote.stdout.strip()
-
+        snapshot = _gather_health_snapshot(config, db)
         print_header("Memory Health Check")
-        rows = [
-            ["Integrity", "PASS" if not issues else f"{len(issues)} issue(s)"],
-            ["Entries", str(stats['total_entries'])],
-            ["Active Tasks", str(stats['active_tasks'])],
-            ["Active Blockers", str(stats['active_blockers'])],
-            ["Pending Parses", str(len(pending))],
-            ["Latest Backup", "none" if not latest_backup else f"{latest_backup['age_hours']:.1f}h ago"],
-            ["Disk Usage", f"{disk['used_pct']:.1f}%"],
-            ["Git Repo", "yes" if _git_is_repo() else "no"],
-            ["Git Clean", "unknown" if git_clean is None else ("yes" if git_clean else "no")],
-        ]
-        if git_branch:
-            rows.append(["Git Branch", git_branch])
-        if git_remote:
-            rows.append(["Git Remote", git_remote])
-        print(table(rows, headers=["Check", "Value"]))
-
-        if issues:
+        print(table(_health_rows(snapshot), headers=["Check", "Value"]))
+        if snapshot["issues"]:
             print_warning("Integrity issues:")
-            for issue in issues:
+            for issue in snapshot["issues"]:
                 print(f" - {issue}")
-        if latest_backup:
-            print_info(f"Latest backup: {latest_backup['file']}")
+        if snapshot["latest_backup"]:
+            print_info(f"Latest backup: {snapshot['latest_backup']['file']}")
     finally:
         db.close()
 
@@ -477,6 +578,26 @@ def cmd_sync(args):
             print_success(f"Auto-escalated {len(escalated)} blocker(s)")
         else:
             raise SystemExit(f"Unknown sync action: {args.action}")
+    finally:
+        db.close()
+
+
+def cmd_notify(args):
+    config, db = runtime()
+    try:
+        snapshot = _gather_health_snapshot(config, db)
+        title = args.title or "Memory Notification Report"
+        content = _health_markdown(snapshot, title=title)
+        if args.output:
+            out = Path(args.output)
+            if not out.is_absolute():
+                out = ROOT / out
+        else:
+            out = _default_report_path("notifications", f"memory-health-{datetime.now().strftime('%Y%m%d')}.md")
+        _write_text_output(out, content)
+        print_success(f"Wrote notification report to {out}")
+        if args.print_report:
+            print(content)
     finally:
         db.close()
 
@@ -532,9 +653,38 @@ def cmd_maintain(args):
         archive = _create_snapshot(include_code=args.include_code, name=args.name)
         print_success(f"Created backup: {archive}")
 
+        if args.notify:
+            snapshot = _gather_health_snapshot(config, db)
+            notify_out = args.notify_output or _default_report_path("notifications", f"memory-health-{datetime.now().strftime('%Y%m%d')}.md")
+            _write_text_output(notify_out, _health_markdown(snapshot, title="Memory Health Report"))
+            print_success(f"Wrote notification report to {notify_out}")
+
         if args.push:
             commit_message = args.commit_message or f"Memory maintenance {datetime.now().strftime('%Y-%m-%d %H:%M')}"
-            _git_commit_and_push(commit_message)
+            if not _git_commit_and_push(commit_message):
+                raise SystemExit(1)
+    finally:
+        db.close()
+
+
+def cmd_audit(args):
+    config, db = runtime()
+    try:
+        snapshot = _gather_health_snapshot(config, db)
+        now = datetime.now()
+        iso_year, iso_week, _ = now.isocalendar()
+        week = args.week or iso_week
+        year = args.year or iso_year
+        try:
+            weekly_report = ReportGenerator(db).weekly_report(week, year)
+        except Exception as exc:
+            weekly_report = f"# Weekly Report\n\nReport generation failed: {exc}\n"
+        audit = _audit_markdown(snapshot, weekly_report, week, year)
+        out = args.output or _default_report_path("audits", f"weekly-audit-{year}-W{week:02d}.md")
+        _write_text_output(out, audit)
+        print_success(f"Wrote weekly audit to {out}")
+        if args.print_report:
+            print(audit)
     finally:
         db.close()
 
@@ -618,7 +768,9 @@ Examples:
   %(prog)s search "authentication" --advanced
   %(prog)s report daily
   %(prog)s backup create --include-code
-  %(prog)s maintain --push --include-code
+  %(prog)s maintain --push --include-code --notify
+  %(prog)s notify
+  %(prog)s audit
   %(prog)s health
   %(prog)s validate --fix
   %(prog)s parse --file chat.txt --auto-create
@@ -685,6 +837,19 @@ Examples:
     p = subparsers.add_parser("health", help="Show a memory health report")
     p.set_defaults(func=cmd_health)
 
+    p = subparsers.add_parser("notify", help="Write a health notification/report")
+    p.add_argument("--output")
+    p.add_argument("--title")
+    p.add_argument("--print-report", action="store_true")
+    p.set_defaults(func=cmd_notify)
+
+    p = subparsers.add_parser("audit", help="Run a weekly memory audit")
+    p.add_argument("--week", type=int)
+    p.add_argument("--year", type=int)
+    p.add_argument("--output")
+    p.add_argument("--print-report", action="store_true")
+    p.set_defaults(func=cmd_audit)
+
     p = subparsers.add_parser("backup", help="Backup memory data")
     bp = p.add_subparsers(dest="backup_action", required=True)
     c = bp.add_parser("create", help="Create a tar.gz snapshot")
@@ -713,6 +878,8 @@ Examples:
     p.add_argument("--name")
     p.add_argument("--commit-message")
     p.add_argument("--fix", action="store_true", help="Auto-fix integrity issues first")
+    p.add_argument("--notify", action="store_true", help="Write a health notification report after maintenance")
+    p.add_argument("--notify-output", help="Custom notification report path")
     p.set_defaults(func=cmd_maintain)
 
     p = subparsers.add_parser("pending", help="List pending auto-extraction parses")

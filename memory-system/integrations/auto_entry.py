@@ -101,7 +101,10 @@ class AutoEntryGenerator:
 
     def _requires_approval(self, tasks: List[Dict], decisions: List[Dict], blockers: List[Dict], threshold: str) -> bool:
         rank_threshold = self._confidence_rank(threshold)
-        for item in tasks + decisions + blockers:
+        items = tasks + decisions + blockers
+        if not items:
+            return True
+        for item in items:
             if self._confidence_rank(item.get('confidence', 'low')) < rank_threshold:
                 return True
         return False
@@ -219,13 +222,22 @@ class AutoEntryGenerator:
         if not existing:
             return entry
 
-        def merge_unique(existing_items, new_items, key='id'):
-            seen = {getattr(item, key, None) for item in existing_items}
+        def normalize(value: Any) -> str:
+            return " ".join(str(value or "").lower().split())
+
+        def fingerprint(item) -> str:
+            type_name = item.__class__.__name__
+            title = getattr(item, 'title', '') or getattr(item, 'decision', '') or getattr(item, 'summary', '') or getattr(item, 'description', '')
+            scope = getattr(item, 'project_id', '') or getattr(item, 'entry_date', '') or getattr(item, 'date', '')
+            return f"{type_name}:{normalize(title)}:{normalize(scope)}"
+
+        def merge_unique(existing_items, new_items):
+            seen = {fingerprint(item) for item in existing_items}
             for item in new_items:
-                value = getattr(item, key, None)
-                if value not in seen:
+                key = fingerprint(item)
+                if key not in seen:
                     existing_items.append(item)
-                    seen.add(value)
+                    seen.add(key)
             return existing_items
 
         existing.tasks = merge_unique(existing.tasks, entry.tasks)
@@ -245,12 +257,12 @@ class AutoEntryGenerator:
         # Get pending parse
         cursor = self.db.conn.cursor()
         cursor.execute(
-            "SELECT extracted_data FROM pending_parses WHERE id = ?",
+            "SELECT extracted_data, approved FROM pending_parses WHERE id = ?",
             (parse_id,)
         )
         row = cursor.fetchone()
         
-        if not row:
+        if not row or row['approved']:
             return False
         
         data = json.loads(row['extracted_data'])

@@ -7,7 +7,8 @@ This is the modular v3 memory system for OpenClaw.
 - generates MEMORY.md and supporting views
 - supports search, reports, sync, backup, validation, and auto-extraction
 - keeps Markdown human-readable while using SQLite for querying
-- adds a health check and automated maintenance path
+- adds a health check, notification hook, and automated maintenance path
+- includes a weekly audit command and a cron installer helper
 
 ## Main entry point
 
@@ -38,11 +39,17 @@ python3 memory-v3.py validate
 # Show health report
 python3 memory-v3.py health
 
+# Write a notification report
+python3 memory-v3.py notify --print-report
+
+# Run a weekly audit
+python3 memory-v3.py audit --print-report
+
 # Create a backup snapshot
 python3 memory-v3.py backup create
 
 # Run maintenance + optional git push
-python3 memory-v3.py maintain --push --include-code
+python3 memory-v3.py maintain --push --include-code --notify
 ```
 
 ## Core commands
@@ -68,6 +75,8 @@ python3 memory-v3.py maintain --push --include-code
 - `sync escalate`
 - `validate`
 - `health`
+- `notify`
+- `audit`
 
 ### Backups
 - `backup create`
@@ -82,7 +91,7 @@ python3 memory-v3.py maintain --push --include-code
 - `pending`
 - `approve <parse_id>`
 
-## V3 improvements
+## v3 improvements
 
 - schema-first workflow
 - better validation
@@ -90,6 +99,8 @@ python3 memory-v3.py maintain --push --include-code
 - backup snapshots
 - integrity checks
 - health reporting
+- weekly audit reports
+- notification/reporting hook for cron or external systems
 - auto-extracted memory candidates with stricter approval gating
 - cleaner modular layout
 
@@ -99,13 +110,18 @@ You can run the maintenance script from cron:
 
 ```bash
 # Example: every day at 9:00
-0 9 * * * /root/.openclaw/workspace/memory-system/memory-maintenance.sh --push >> /root/.openclaw/workspace/memory-system/backups/maintenance.log 2>&1
+0 9 * * * /root/.openclaw/workspace/memory-system/memory-maintenance.sh --push --notify >> /root/.openclaw/workspace/memory-system/backups/maintenance.log 2>&1
 ```
 
-This will:
-- validate the memory system
-- create a snapshot backup
-- commit/push changes when there are updates
+You can also install the cron jobs with the helper:
+
+```bash
+./memory-install-cron.sh
+```
+
+This installs:
+- daily maintenance + git push
+- weekly audit report
 
 ## Legacy note
 
