@@ -18,6 +18,7 @@
 - **Memory system hardening pass applied from reported bug list**
 - **Orchestration CEO skill created and packaged**
 - **Task Watch skill created and packaged**
+- **Capability-First skill created and packaged**
 - GitHub repo uploaded and README refreshed for visitors
 
 ### Active Projects
@@ -30,6 +31,7 @@
 | GitHub Repo | Complete | 2026-03-23 | Maintain repo and improve documentation |
 | Orchestration CEO Skill | Complete | 2026-03-24 | Use as top-level routing/control skill |
 | Task Watch Skill | Complete | 2026-03-24 | Use for pending-task monitoring and follow-up |
+| Capability-First Skill | Complete | 2026-03-24 | Check existing skills/tools before fresh reasoning |
 
 ### Pending Tasks
 - [ ] Finalize v3 migration/adoption steps
@@ -49,6 +51,7 @@
 - v3 will focus on reliability, automation, integrity, and retrieval quality
 - OpenCode Go models are the preferred model stack for coding, planning, and review
 - Keep file-based human-readable logs plus SQLite indexing
+- Reuse first, invent last, using the capability-first protocol
 
 ---
 
@@ -166,6 +169,21 @@
   - `skills/task-watch/SKILL.md`
   - `skills/task-watch/references/watch-playbook.md`
 
+### Capability-First Skill
+- **Objective:** Pre-task capability routing to avoid rebuilding known workflows
+- **Current Status:** Complete
+- **Key Decisions:**
+  - Reuse first, invent last
+  - Route before reasoning
+  - Check existing skills, tools, and reusable workflows before fresh reasoning
+- **Open Tasks:** None
+- **Blockers:** None
+- **Next Milestone:** Use it automatically before future tasks
+- **References:**
+  - `skills/capability-first/SKILL.md`
+  - `skills/capability-first/references/capability-registry.md`
+  - `skills/capability-first/references/capability-playbook.md`
+
 ---
 
 ## Daily Log Index
@@ -173,7 +191,7 @@
 | Date | Projects | Key Events |
 |------|----------|------------|
 | 2026-03-23 | OpenCode Setup, Identity Establishment, Memory System v2, Memory System v3 | Initial setup, OpenCode/Go work, memory system build, v3 planning |
-| 2026-03-24 | Heartbeat, Orchestration CEO, Task Watch | Operating rules, orchestration skill, pending-task watcher |
+| 2026-03-24 | Heartbeat, Orchestration CEO, Task Watch, Capability-First | Operating rules, orchestration skill, pending-task watcher, capability routing |
 
 ---
 
@@ -184,6 +202,7 @@
 - Go → Project: OpenCode Go
 - Memory System v2 → Production memory baseline
 - Memory System v3 → Planning
+- Capability-First → New skill / routing protocol
 - Dashboard → Memory System v2/v3 status
 
 **By Date:**
