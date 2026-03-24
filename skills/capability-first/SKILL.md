@@ -60,3 +60,10 @@ When you act on this skill, keep the final answer grounded and operational:
 ## Memory rule
 If a task repeats, write down the reusable pattern.
 If a workflow becomes stable, promote it into a skill, checklist, or automation.
+Whenever a new skill or tool is added, discovered, or built, refresh the capability registry with the updater script.
+
+## Registry upkeep
+Use the registry updater to keep the living inventory current:
+- `python3 skills/capability-first/scripts/update_registry.py`
+
+The registry is the first source of truth for reuse decisions.
