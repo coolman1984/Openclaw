@@ -76,3 +76,17 @@ Log meaningful pending-work transitions:
 - task completed
 - blocker discovered
 - blocker resolved
+
+## Status labels
+When reporting pending work, use these labels when relevant:
+- PLANNING
+- EXECUTING
+- WAITING
+- BLOCKED
+- REVIEWING
+- COMPLETE
+
+If a watched task reaches COMPLETE, report:
+- Result
+- Why this is complete
+- Best next action

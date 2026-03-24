@@ -47,3 +47,18 @@ Provide sub-agents:
 - Verify output.
 - Merge into one coherent answer.
 - Update memory if it matters.
+
+## Status labels
+Use these exact labels in task updates:
+- PLANNING
+- EXECUTING
+- WAITING
+- BLOCKED
+- REVIEWING
+- COMPLETE
+
+## Complete-task closure
+When a task is COMPLETE, end with:
+- Result
+- Why this is complete
+- Best next action

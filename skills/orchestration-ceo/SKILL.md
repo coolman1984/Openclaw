@@ -63,3 +63,27 @@ Keep final updates concise and operational:
 - current state
 - blocker or key finding
 - next action
+
+## Operating loop
+For each task:
+1. Classify the task.
+2. Decide whether to answer directly, delegate, or split into phases.
+3. State the chosen approach briefly.
+4. Execute or assign the first high-leverage step.
+5. Review output quality.
+6. Report status and next action.
+
+## Status labels
+Use one of:
+- PLANNING
+- EXECUTING
+- WAITING
+- BLOCKED
+- REVIEWING
+- COMPLETE
+
+## Completion format
+If the task is COMPLETE, end with:
+- Result
+- Why this is complete
+- Best next action
