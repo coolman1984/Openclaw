@@ -24,6 +24,7 @@
 - **Operating loop and status-label protocol adopted**
 - **Common operating policy adopted**
 - **Builder specialist created and wired into routing**
+- **Researcher specialist created and wired into routing**
 - GitHub repo uploaded and README refreshed for visitors
 
 ### Active Projects
@@ -40,6 +41,7 @@
 | Capability Registry Updater | Complete | 2026-03-24 | Keep skills/tools registry current automatically |
 | Capability Sync Command | Complete | 2026-03-24 | Register new tools and refresh registry in one step |
 | Builder Specialist | Complete | 2026-03-24 | Use for implementation work and concrete builds |
+| Researcher Specialist | Complete | 2026-03-24 | Use for evidence gathering and analysis |
 
 ### Pending Tasks
 - [ ] Finalize v3 migration/adoption steps
@@ -256,6 +258,7 @@
 - Capability Registry → Living inventory of skills/tools
 - Capability Sync → Registry refresh and tool registration
 - Builder → Implementation specialist
+- Researcher → Evidence gathering and analysis
 - Dashboard → Memory System v2/v3 status
 
 **By Date:**

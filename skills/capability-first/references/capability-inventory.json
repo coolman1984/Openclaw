@@ -28,7 +28,9 @@
         {"name": "skill-creator", "description": "Create, improve, audit, and package AgentSkills."},
         {"name": "orchestration-ceo", "description": "Top-level routing and control skill."},
         {"name": "task-watch", "description": "Pending-work monitoring and completion follow-up."},
-        {"name": "capability-first", "description": "Pre-task capability routing to reuse existing skills and tools first."}
+        {"name": "capability-first", "description": "Pre-task capability routing to reuse existing skills and tools first."},
+        {"name": "builder", "description": "Implementation specialist for coding, setup, config, scripts, and fixes."},
+        {"name": "researcher", "description": "Evidence-oriented research specialist for comparison and decision support."}
       ]
     },
     {

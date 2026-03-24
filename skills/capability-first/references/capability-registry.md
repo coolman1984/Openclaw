@@ -2,7 +2,7 @@
 
 This registry is the first place to check before doing fresh reasoning.
 
-_Generated: 2026-03-24T09:36:03_
+_Generated: 2026-03-24T09:59:32_
 
 ## Skills
 
@@ -14,6 +14,9 @@ Silent pre-task routing for OpenClaw. Use when deciding how to handle any reques
 
 ### `orchestration-ceo`
 Top-level orchestration for Mohamed’s AI system. Use when a request needs strategy, multi-step planning, delegation to sub-agents or tools, review/testing, long-running task control, heartbeat follow-up, or building reusable operating procedures and automation.
+
+### `researcher`
+Evidence-oriented research specialist for gathering, comparing, analyzing, and synthesizing facts for decision-making. Use when the task is research, option comparison, tradeoff analysis, uncertainty handling, or decision support.
 
 ### `task-watch`
 Pending-work monitoring and completion follow-up for long-running tasks, sub-agents, reviews, tests, and background jobs. Use when you need recurring status checks, 2-minute wakeups, completion notifications, blocker tracking, or a clean handoff from waiting to done.
@@ -65,6 +68,10 @@ Pending-work monitoring and completion follow-up for long-running tasks, sub-age
   - Pending-work monitoring and completion follow-up.
 - `capability-first`
   - Pre-task capability routing to reuse existing skills and tools first.
+- `builder`
+  - Implementation specialist for coding, setup, config, scripts, and fixes.
+- `researcher`
+  - Evidence-oriented research specialist for comparison and decision support.
 
 ### Workspace tools
 - `dev-assistant.py`
